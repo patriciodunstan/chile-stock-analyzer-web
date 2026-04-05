@@ -16,6 +16,9 @@ import type {
   CompaniesResponse,
   BatchAnalysisResponse,
   AnalysisResult,
+  PriceHistoryResponse,
+  FinancialMetricsResponse,
+  FinancialStatementsResponse,
 } from "../types/api";
 
 const resolveApiBaseUrl = (): string => {
@@ -153,4 +156,83 @@ export const useAnalysis = (ticker: string) =>
     queryFn: () => fetchAnalysis(ticker),
     enabled: !!ticker,
     staleTime: 2 * 60 * 1000,
+  });
+
+/**
+ * Fetch price history for a ticker
+ */
+export const fetchPriceHistory = async (
+  ticker: string,
+  limit = 90
+): Promise<PriceHistoryResponse> => {
+  const { data } = await api.get<PriceHistoryResponse>(
+    `/stocks/${ticker}/history`,
+    { params: { limit } }
+  );
+  return data;
+};
+
+/**
+ * Hook to fetch price history — enabled only when ticker is provided
+ * Stale time: 5 minutes
+ */
+export const usePriceHistory = (ticker: string, limit = 90) =>
+  useQuery({
+    queryKey: ["price-history", ticker, limit],
+    queryFn: () => fetchPriceHistory(ticker, limit),
+    enabled: !!ticker,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+/**
+ * Fetch financial metrics for a ticker
+ */
+export const fetchFinancialMetrics = async (
+  ticker: string
+): Promise<FinancialMetricsResponse> => {
+  const { data } = await api.get<FinancialMetricsResponse>(
+    `/financials/${ticker}/metrics`
+  );
+  return data;
+};
+
+/**
+ * Hook to fetch financial metrics — enabled only when ticker is provided
+ * Stale time: 10 minutes (metrics don't change often)
+ */
+export const useFinancialMetrics = (ticker: string) =>
+  useQuery({
+    queryKey: ["financial-metrics", ticker],
+    queryFn: () => fetchFinancialMetrics(ticker),
+    enabled: !!ticker,
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  });
+
+/**
+ * Fetch financial statements history for a ticker
+ */
+export const fetchFinancialStatements = async (
+  ticker: string,
+  limit = 8
+): Promise<FinancialStatementsResponse> => {
+  const { data } = await api.get<FinancialStatementsResponse>(
+    `/financials/${ticker}/statements`,
+    { params: { limit } }
+  );
+  return data;
+};
+
+/**
+ * Hook to fetch financial statements — enabled only when ticker is provided
+ * Stale time: 10 minutes
+ */
+export const useFinancialStatements = (ticker: string, limit = 8) =>
+  useQuery({
+    queryKey: ["financial-statements", ticker, limit],
+    queryFn: () => fetchFinancialStatements(ticker, limit),
+    enabled: !!ticker,
+    staleTime: 10 * 60 * 1000,
+    retry: false,
   });

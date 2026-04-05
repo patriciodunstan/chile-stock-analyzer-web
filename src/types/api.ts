@@ -41,6 +41,7 @@ export interface MetricsData {
 export interface ScoringData {
   score: number;
   signal: "BUY" | "HOLD" | "SELL" | "N/A";
+  signal_override?: boolean;
   components: Record<string, number>;
   reasons: string[];
 }
@@ -72,6 +73,8 @@ export interface RankedCompany {
   market_price: number | null;
   intrinsic_value: number | null;
   margin_of_safety: number | null;
+  buy_target_price: number | null;
+  top_reasons: string[];
   pe_ratio: number | null;
   ev_ebitda: number | null;
   roe: number | null;
@@ -91,4 +94,35 @@ export interface BatchAnalysisResponse {
   summary: BatchSummary;
   errors: Record<string, string>;
   analyzed_at: string;
+}
+
+export interface PricePoint {
+  date: string;
+  close: number;
+  volume?: number | null;
+}
+
+export interface PriceHistoryResponse {
+  ticker: string;
+  history: PricePoint[];
+}
+
+export interface FinancialStatement {
+  period: string;
+  revenue: number | null;
+  ebitda: number | null;
+  net_income: number | null;
+  total_debt: number | null;
+  cash: number | null;
+}
+
+export interface FinancialStatementsResponse {
+  ticker: string;
+  statements: FinancialStatement[];
+}
+
+export interface FinancialMetricsResponse {
+  ticker: string;
+  period: string;
+  metrics: MetricsData;
 }

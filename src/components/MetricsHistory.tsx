@@ -72,15 +72,15 @@ export function MetricsHistory({ ranking }: Props) {
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-      <div className="flex flex-col gap-4 mb-6">
-        <h3 className="text-lg font-semibold text-slate-200">Metrics Comparison</h3>
-        <div className="flex flex-wrap gap-2">
+    <div className="bg-slate-800 rounded-lg border border-slate-700 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-slate-200">Comparación por métrica</h3>
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {metricOptions.map((option) => (
             <button
               key={option.key}
               onClick={() => setSelectedMetric(option.key)}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors ${
                 selectedMetric === option.key
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
@@ -93,15 +93,15 @@ export function MetricsHistory({ ranking }: Props) {
       </div>
 
       {chartData.length === 0 ? (
-        <div className="flex items-center justify-center h-80 text-slate-400">
-          No data available
+        <div className="flex items-center justify-center h-60 text-slate-400 text-sm">
+          Sin datos disponibles
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={280}>
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+            margin={{ top: 5, right: 20, left: 70, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
             <XAxis type="number" stroke="#64748b" />

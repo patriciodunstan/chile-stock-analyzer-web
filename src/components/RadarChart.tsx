@@ -93,9 +93,9 @@ export function RadarChart({ companies }: Props) {
   const colors = ['#10b981', '#3b82f6', '#f59e0b'];
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
-      <h3 className="text-lg font-semibold text-slate-200 mb-4">Metrics Comparison</h3>
-      <ResponsiveContainer width="100%" height={400}>
+    <div className="bg-slate-800 rounded-lg border border-slate-700 p-4 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-slate-200 mb-4">Comparación radar</h3>
+      <ResponsiveContainer width="100%" height={280}>
         <RechartsRadar data={data}>
           <PolarGrid stroke="#475569" />
           <PolarAngleAxis

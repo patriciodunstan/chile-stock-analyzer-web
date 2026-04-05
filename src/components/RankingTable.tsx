@@ -9,7 +9,7 @@ interface Props {
   selectedTicker: string | null;
 }
 
-type SortColumn = 'score' | 'pe_ratio' | 'ev_ebitda' | 'roe' | 'margin_of_safety' | 'debt_to_equity';
+type SortColumn = 'score' | 'pe_ratio' | 'ev_ebitda' | 'roe' | 'margin_of_safety' | 'debt_to_equity' | 'buy_target_price';
 type SortDirection = 'asc' | 'desc';
 
 export function RankingTable({ ranking, onSelectCompany, selectedTicker }: Props) {
@@ -29,7 +29,6 @@ export function RankingTable({ ranking, onSelectCompany, selectedTicker }: Props
     const aVal = a[sortColumn] as number | null;
     const bVal = b[sortColumn] as number | null;
 
-    // Handle null values
     if (aVal === null && bVal === null) return 0;
     if (aVal === null) return 1;
     if (bVal === null) return -1;
@@ -39,9 +38,16 @@ export function RankingTable({ ranking, onSelectCompany, selectedTicker }: Props
   });
 
   const formatNumber = (value: number | null, type: 'decimal' | 'percentage'): string => {
-    if (value === null) return 'N/A';
+    if (value === null) return '—';
     if (type === 'percentage') return `${value.toFixed(1)}%`;
     return value.toFixed(1);
+  };
+
+  const formatCurrency = (value: number | null): string => {
+    if (value === null) return '—';
+    return value >= 1000
+      ? `$${(value / 1000).toFixed(0)}k`
+      : `$${value.toFixed(0)}`;
   };
 
   const getMoSColor = (mos: number | null): string => {
@@ -76,8 +82,8 @@ export function RankingTable({ ranking, onSelectCompany, selectedTicker }: Props
           <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">#</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Company</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-slate-300">Signal</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Empresa</th>
+              <th className="px-4 py-3 text-center text-sm font-semibold text-slate-300">Señal</th>
               <th className="px-4 py-3 text-right">
                 <SortHeader column="score" label="Score" />
               </th>
@@ -94,51 +100,79 @@ export function RankingTable({ ranking, onSelectCompany, selectedTicker }: Props
                 <SortHeader column="margin_of_safety" label="MoS" />
               </th>
               <th className="px-4 py-3 text-right">
+                <SortHeader column="buy_target_price" label="Target" />
+              </th>
+              <th className="px-4 py-3 text-right">
                 <SortHeader column="debt_to_equity" label="D/E" />
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
-            {sortedRanking.map((company) => (
-              <tr
-                key={company.ticker}
-                onClick={() => onSelectCompany(company.ticker)}
-                className={`cursor-pointer transition-colors ${
-                  selectedTicker === company.ticker
-                    ? 'bg-slate-700 hover:bg-slate-650'
-                    : 'bg-slate-800 hover:bg-slate-750'
-                }`}
-              >
-                <td className="px-4 py-3 text-sm text-slate-400 font-medium">{company.rank}</td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-semibold text-slate-200">{company.ticker}</span>
-                    <span className="text-xs text-slate-500">{company.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <SignalBadge signal={company.signal} score={company.score} />
-                </td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300 font-medium">
-                  {company.score}
-                </td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300">
-                  {formatNumber(company.pe_ratio, 'decimal')}
-                </td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300">
-                  {formatNumber(company.ev_ebitda, 'decimal')}
-                </td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300">
-                  {formatNumber(company.roe, 'percentage')}
-                </td>
-                <td className={`px-4 py-3 text-right text-sm font-semibold ${getMoSColor(company.margin_of_safety)}`}>
-                  {formatNumber(company.margin_of_safety, 'percentage')}
-                </td>
-                <td className="px-4 py-3 text-right text-sm text-slate-300">
-                  {formatNumber(company.debt_to_equity, 'decimal')}
-                </td>
-              </tr>
-            ))}
+            {sortedRanking.map((company) => {
+              const isSelected = selectedTicker === company.ticker;
+              const hasReasons = company.top_reasons?.length > 0;
+              return (
+                <>
+                  <tr
+                    key={company.ticker}
+                    onClick={() => onSelectCompany(company.ticker)}
+                    className={`cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-slate-700 hover:bg-slate-650'
+                        : 'bg-slate-800 hover:bg-slate-750'
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-sm text-slate-400 font-medium">{company.rank}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-slate-200">{company.ticker}</span>
+                        <span className="text-xs text-slate-500">{company.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <SignalBadge signal={company.signal} score={company.score} />
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300 font-medium">
+                      {company.score}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {formatNumber(company.pe_ratio, 'decimal')}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {formatNumber(company.ev_ebitda, 'decimal')}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {formatNumber(company.roe, 'percentage')}
+                    </td>
+                    <td className={`px-4 py-3 text-right text-sm font-semibold ${getMoSColor(company.margin_of_safety)}`}>
+                      {formatNumber(company.margin_of_safety, 'percentage')}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-blue-300 font-medium">
+                      {formatCurrency(company.buy_target_price)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-slate-300">
+                      {formatNumber(company.debt_to_equity, 'decimal')}
+                    </td>
+                  </tr>
+                  {isSelected && hasReasons && (
+                    <tr key={`${company.ticker}-reasons`} className="bg-slate-750 border-t-0">
+                      <td colSpan={10} className="px-4 pb-3 pt-1">
+                        <div className="flex flex-wrap gap-2">
+                          {company.top_reasons.map((reason, i) => (
+                            <span
+                              key={i}
+                              className="text-xs text-slate-300 bg-slate-600 px-2.5 py-1 rounded-full"
+                            >
+                              {reason}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              );
+            })}
           </tbody>
         </table>
       </div>
