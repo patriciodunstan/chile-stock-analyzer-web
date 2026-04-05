@@ -4,7 +4,7 @@
  */
 
 import axios from "axios";
-import type { InternalAxiosRequestConfig } from "axios";
+
 import { useQuery } from "@tanstack/react-query";
 
 declare module "axios" {
