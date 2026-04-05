@@ -35,8 +35,16 @@ jobs:
     container: ghcr.io/railwayapp/cli:latest
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: "chile-stock-analyzer-web"
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Railway service
+        run: |
+          if [ -z "$RAILWAY_SERVICE" ]; then
+            echo "Missing GitHub variable RAILWAY_SERVICE"
+            exit 1
+          fi
+
       - name: Deploy
-        run: railway up
+        run: railway up --service="$RAILWAY_SERVICE"
