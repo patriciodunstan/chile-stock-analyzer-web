@@ -18,13 +18,37 @@ import type {
   AnalysisResult,
 } from "../types/api";
 
+const resolveApiBaseUrl = (): string => {
+  const raw = import.meta.env.VITE_API_URL?.trim();
+
+  if (!raw) {
+    return "/api/v1";
+  }
+
+  const base = raw.replace(/\/+$/, "");
+
+  if (base.endsWith("/api/v1")) {
+    return base;
+  }
+
+  if (base.endsWith("/api")) {
+    return `${base}/v1`;
+  }
+
+  if (base.startsWith("http://") || base.startsWith("https://")) {
+    return `${base}/api/v1`;
+  }
+
+  return `${base}/api/v1`;
+};
+
 /**
  * Axios instance configured for API calls
  * Base URL is configurable via VITE_API_URL environment variable
  * Defaults to /api/v1 for development
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: resolveApiBaseUrl(),
   timeout: 30000,
 });
 
