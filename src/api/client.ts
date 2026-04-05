@@ -4,7 +4,14 @@
  */
 
 import axios from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
 import { useQuery } from "@tanstack/react-query";
+
+declare module "axios" {
+  interface InternalAxiosRequestConfig {
+    metadata?: { startTime: number };
+  }
+}
 import type {
   CompaniesResponse,
   BatchAnalysisResponse,
@@ -20,6 +27,33 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   timeout: 30000,
 });
+
+api.interceptors.request.use((config) => {
+  config.metadata = { startTime: Date.now() };
+  console.info(`[API] → ${config.method?.toUpperCase()} ${config.url}`, config.params ?? '');
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => {
+    const duration = Date.now() - (response.config.metadata?.startTime ?? Date.now());
+    console.info(
+      `[API] ✓ ${response.config.method?.toUpperCase()} ${response.config.url} — ${response.status} (${duration}ms)`
+    );
+    return response;
+  },
+  (error: import('axios').AxiosError) => {
+    const duration = Date.now() - (error.config?.metadata?.startTime ?? Date.now());
+    const status = error.response?.status ?? 'network error';
+    const url = error.config?.url ?? 'unknown';
+    const method = error.config?.method?.toUpperCase() ?? 'UNKNOWN';
+    console.error(
+      `[API] ✗ ${method} ${url} — ${status} (${duration}ms)`,
+      error.response?.data ?? error.message
+    );
+    return Promise.reject(error);
+  }
+);
 
 /**
  * API Functions
