@@ -11,7 +11,15 @@ import {
 } from './components';
 import { RefreshCw } from 'lucide-react';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: 5000,
+    },
+  },
+});
 
 function Dashboard() {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);

@@ -80,6 +80,8 @@ export const useBatchAnalysis = (sector?: string) =>
     queryKey: ["batch-analysis", sector],
     queryFn: () => fetchBatchAnalysis(sector),
     staleTime: 2 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
 /**
