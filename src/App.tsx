@@ -23,6 +23,29 @@ function Dashboard() {
 
   const { data: detailData, isLoading: detailLoading } = useAnalysis(selectedTicker ?? '');
 
+  const safeSummary = useMemo(() => {
+    if (!batchData) {
+      return {
+        total_companies: 0,
+        analyzed: 0,
+        buy_count: 0,
+        hold_count: 0,
+        sell_count: 0,
+      };
+    }
+
+    const rankingLength = Array.isArray(batchData.ranking) ? batchData.ranking.length : 0;
+    const summary = batchData.summary;
+
+    return {
+      total_companies: summary?.total_companies ?? rankingLength,
+      analyzed: summary?.analyzed ?? rankingLength,
+      buy_count: summary?.buy_count ?? 0,
+      hold_count: summary?.hold_count ?? 0,
+      sell_count: summary?.sell_count ?? 0,
+    };
+  }, [batchData]);
+
   const sectors = useMemo(() => {
     if (!batchData?.ranking) return [];
     const sectorSet = new Set(batchData.ranking.map((c) => c.sector));
@@ -75,16 +98,16 @@ function Dashboard() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              {batchData?.summary && (
+              {batchData && (
                 <div className="hidden md:flex gap-3 text-sm">
                   <span className="px-2.5 py-1 bg-green-900/50 text-green-400 rounded font-semibold">
-                    BUY {batchData.summary.buy_count}
+                    BUY {safeSummary.buy_count}
                   </span>
                   <span className="px-2.5 py-1 bg-amber-900/50 text-amber-400 rounded font-semibold">
-                    HOLD {batchData.summary.hold_count}
+                    HOLD {safeSummary.hold_count}
                   </span>
                   <span className="px-2.5 py-1 bg-red-900/50 text-red-400 rounded font-semibold">
-                    SELL {batchData.summary.sell_count}
+                    SELL {safeSummary.sell_count}
                   </span>
                 </div>
               )}
@@ -149,20 +172,20 @@ function Dashboard() {
                 <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
                   <p className="text-xs text-slate-400 mb-1">Analyzed</p>
                   <p className="text-2xl font-bold text-slate-100">
-                    {batchData.summary.analyzed}/{batchData.summary.total_companies}
+                    {safeSummary.analyzed}/{safeSummary.total_companies}
                   </p>
                 </div>
                 <div className="bg-slate-800 rounded-lg border border-green-900/50 p-4">
                   <p className="text-xs text-slate-400 mb-1">BUY Signals</p>
-                  <p className="text-2xl font-bold text-green-400">{batchData.summary.buy_count}</p>
+                  <p className="text-2xl font-bold text-green-400">{safeSummary.buy_count}</p>
                 </div>
                 <div className="bg-slate-800 rounded-lg border border-amber-900/50 p-4">
                   <p className="text-xs text-slate-400 mb-1">HOLD Signals</p>
-                  <p className="text-2xl font-bold text-amber-400">{batchData.summary.hold_count}</p>
+                  <p className="text-2xl font-bold text-amber-400">{safeSummary.hold_count}</p>
                 </div>
                 <div className="bg-slate-800 rounded-lg border border-red-900/50 p-4">
                   <p className="text-xs text-slate-400 mb-1">SELL Signals</p>
-                  <p className="text-2xl font-bold text-red-400">{batchData.summary.sell_count}</p>
+                  <p className="text-2xl font-bold text-red-400">{safeSummary.sell_count}</p>
                 </div>
               </div>
             </div>
@@ -207,7 +230,10 @@ function Dashboard() {
 
             {/* Footer */}
             <div className="mt-8 text-center text-xs text-slate-500">
-              Last analyzed: {new Date(batchData.analyzed_at).toLocaleString('es-CL')}
+              Last analyzed:{' '}
+              {batchData.analyzed_at
+                ? new Date(batchData.analyzed_at).toLocaleString('es-CL')
+                : 'N/A'}
             </div>
           </>
         )}
